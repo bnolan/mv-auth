@@ -7,15 +7,6 @@ session = require("express-session")
 redis = require("redis")
 bcrypt = require("bcrypt")
 Backbone = require("backbone")
-PORT = process.env.PORT or 3000
-ADDRESS = "http://localhost:" + PORT + "/"
-PROVIDER_ENDPOINT = ADDRESS + "openid"
-
-# OpenID
-skylith = new Skylith(
-  providerEndpoint : PROVIDER_ENDPOINT
-  checkAuth : checkAuth
-)
 
 # Redis
 redisClient = redis.createClient()
@@ -23,37 +14,7 @@ redisClient = redis.createClient()
 # store: we're using the default memory store here. Don't use that in production! See http://www.senchalabs.org/connect/session.html#warning
 # We use sessions for maintaining state between Skylith calls so this can be quite short
 
-# Inspect 'ax' in the stored context to see which attributes the RP is requesting.
-# You SHOULD prompt the user to release these attributes. The suggested flow here is
-# to authenticate the user (login), and then on a subsequent page request
-# permission to release data.
-
-# Check the login credentials. If you're unhappy do whatever you would do. If you're
-# happy then do this...
-
-# Having got permission to release data, form an AX response (this should be done in
-# conjunction with the 'ax' attribute in the stored context to see what (if any)
-# attributes the Relying Party wants):
-
-# User cancelled authentication
-checkAuth = (req, res, allowInteraction, context) ->
-  
-  # Skylith wants to know if the user is already logged in or not. Check your session/cookies/whatever.
-  # * If the user is already logged in, call skylith.completeAuth()
-  # * If the user is NOT logged in and allowInteraction is true, store context somewhere (suggest not
-  #   in a cookie because it can be quite big), prompt the user to login and when they're done call
-  #   skylith.completeAuth()
-  # * If the user is NOT logged in and allowInteraction is false, call skylith.rejectAuth()
-  
-  # This example assumes you're not already logged in
-  if allowInteraction
-    req.session.skylith = context
-    res.redirect 302, "/login"
-  else
-    # ...
-
-  return
-
+# User class - stub only at the moment
 class User extends Backbone.Model
 
 app = express()
@@ -164,6 +125,49 @@ app.set 'view engine', 'jade'
 app.get '/', (req, res) ->
   res.render('index', { user : req.user })
 
+# OpenID stuff...
+
+generateAuthResponse = (req) ->
+  axResponse =
+    "http://axschema.org/namePerson/friendly": req.user.id
+    # "http://axschema.org/contact/email": req.body.username.toLowerCase() + "@example.com"
+    # "http://axschema.org/namePerson": req.body.username + " Smith"
+
+  authResponse =
+    context: req.session.skylith
+    identity: req.user.id
+    ax: axResponse
+
+checkAuth = (req, res, allowInteraction, context) ->
+  
+  # Skylith wants to know if the user is already logged in or not. Check your session/cookies/whatever.
+  # * If the user is already logged in, call skylith.completeAuth()
+  # * If the user is NOT logged in and allowInteraction is true, store context somewhere (suggest not
+  #   in a cookie because it can be quite big), prompt the user to login and when they're done call
+  #   skylith.completeAuth()
+  # * If the user is NOT logged in and allowInteraction is false, call skylith.rejectAuth()
+  
+  if req.user
+    skylith.completeAuth req, res, generateAuthResponse(req)
+  else if allowInteraction
+    req.session.skylith = context
+    res.redirect 302, "/login"
+  else
+    skylith.rejectAuth()
+    # ...
+
+  return
+
+# OpenID
+PORT = process.env.PORT or 3000
+ADDRESS = "http://localhost:" + PORT + "/"
+PROVIDER_ENDPOINT = ADDRESS + "openid"
+
+skylith = new Skylith(
+  providerEndpoint : PROVIDER_ENDPOINT
+  checkAuth : checkAuth
+)
+
 app.use "/openid", skylith.express()
 
 # app.get "/login", (req, res, next) ->
@@ -172,18 +176,8 @@ app.use "/openid", skylith.express()
 #   return
 
 app.get "/after/login", (req, res, next) ->
-  if "login" of req.body
-    axResponse =
-      "http://axschema.org/namePerson/friendly": req.body.username
-      "http://axschema.org/contact/email": req.body.username.toLowerCase() + "@example.com"
-      "http://axschema.org/namePerson": req.body.username + " Smith"
-
-    authResponse =
-      context: req.session.skylith
-      identity: req.body.username
-      ax: axResponse
-
-    skylith.completeAuth req, res, authResponse
+  if req.user
+    skylith.completeAuth req, res, generateAuthResponse(req)
   else if "cancel" of req.body
     skylith.rejectAuth req, res, req.session.skylith
   else
