@@ -7,5 +7,18 @@ block content
     This is the authentication server. This server conforms to OpenID 2.0. 
     Your site can use OpenID to authenticate with this server.
 
-  p
-    a(href="/login", class="button") > Login
+  if everyauth.user
+    h2 Logged in
+
+    p
+      | You are logged in as 
+      b= everyauth.user.get('id')
+      | .
+
+    p
+      a(href="/logout", class="button") > Logout
+
+  else
+    p
+      a(href="/login", class="button") > Login
+

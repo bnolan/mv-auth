@@ -6,7 +6,7 @@ cookieParser = require("cookie-parser")
 session = require("express-session")
 redis = require("redis")
 bcrypt = require("bcrypt")
-
+Backbone = require("backbone")
 PORT = process.env.PORT or 3000
 ADDRESS = "http://localhost:" + PORT + "/"
 PROVIDER_ENDPOINT = ADDRESS + "openid"
@@ -54,6 +54,7 @@ checkAuth = (req, res, allowInteraction, context) ->
 
   return
 
+class User extends Backbone.Model
 
 app = express()
 app.use bodyParser()
@@ -64,7 +65,7 @@ app.use session(
   cookie:
     signed: true
     httpOnly: true
-    maxAge: 1 * 60 * 1000
+    maxAge: 24 * 60 * 60 * 1000
 )
 
 validLogin = (login) ->
@@ -72,11 +73,6 @@ validLogin = (login) ->
 
 validPassword = (password, confirmation) ->
   typeof password == 'string' and password.length >= 3 and password.length <= 20 and password == confirmation
-
-# cryptPassword = (password, salt) ->
-#   shasum = crypto.createHash('sha1')
-#   shasum.update([password, salt].join('-'))
-#   shasum.digest('hex')
 
 everyauth.password
   .getLoginPath('/login') # Uri path to the login page
@@ -104,7 +100,7 @@ everyauth.password
     promise
   )
 
-  .loginSuccessRedirect('/')
+  .loginSuccessRedirect('/after/login')
   .getRegisterPath('/register') # Uri path to the registration page
   .postRegisterPath('/register') # The Uri path that your registration form POSTs to
   .registerView('register')
@@ -139,7 +135,7 @@ everyauth.password
     salt = bcrypt.genSaltSync(10)
 
     user = {
-      login : login
+      id : login
       password : bcrypt.hashSync(password, salt)
       salt : salt
     }
@@ -149,25 +145,33 @@ everyauth.password
       promise.fulfill(user)
     promise
   )
-  .registerSuccessRedirect('/'); # Where to redirect to after a successful registration
+  .registerSuccessRedirect('/after/login'); # Where to redirect to after a successful registration
+
+everyauth.everymodule.findUserById( (login, callback) ->
+  redisClient.hget "users", login, (err, response) ->
+    if response == null
+      callback ["User not found"]
+      return
+
+    callback false, new User(JSON.parse(response))
+)
 
 app.use everyauth.middleware()
 app.use express.static('public')
 
-# app.set 'views', __dirname
 app.set 'view engine', 'jade'
 
 app.get '/', (req, res) ->
-  res.render('index', { something : [] })
+  res.render('index', { user : req.user })
 
 app.use "/openid", skylith.express()
 
-app.get "/login", (req, res, next) ->
-  res.type "text/html"
-  res.end "<!DOCTYPE html><html><head><title>Login</title></head>" + "<body><h1>Who do you want to be today?</h1>" + "<form method=\"post\">" + "<input type=\"text\" name=\"username\" value=\"Danny\">" + "<button type=\"submit\" name=\"login\">Login</button>" + "<button type=\"submit\" name=\"cancel\">Cancel</button>" + "</form></body></html>"
-  return
+# app.get "/login", (req, res, next) ->
+#   res.type "text/html"
+#   res.end "<!DOCTYPE html><html><head><title>Login</title></head>" + "<body><h1>Who do you want to be today?</h1>" + "<form method=\"post\">" + "<input type=\"text\" name=\"username\" value=\"Danny\">" + "<button type=\"submit\" name=\"login\">Login</button>" + "<button type=\"submit\" name=\"cancel\">Cancel</button>" + "</form></body></html>"
+#   return
 
-app.post "/login", (req, res, next) ->
+app.get "/after/login", (req, res, next) ->
   if "login" of req.body
     axResponse =
       "http://axschema.org/namePerson/friendly": req.body.username
