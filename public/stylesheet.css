@@ -1,0 +1,109 @@
+body, html {
+  height: 100%;
+  margin: 0;
+  padding: 0; }
+
+body {
+  font-family: 'helvetica neue', sans-serif;
+  font-size: 0.85em;
+  color: #333;
+  background: white;
+  margin: 0;
+  padding: 0;
+  background: #eee;
+  line-height: 1.5em; }
+
+* {
+  box-sizing: border-box; }
+
+h1, h2, h3, h4, h5 {
+  font-family: 'Roboto', sans-serif; }
+
+h1 {
+  letter-spacing: -1px;
+  font-size: 2.5em; }
+
+#wrapper {
+  max-width: 460px;
+  margin: auto;
+  background: white;
+  padding: 20px;
+  box-shadow: 1px 1px 3px #ccc;
+  min-height: 100%; }
+
+h1.title {
+  text-align: center;
+  margin: 20px 0 0 0;
+  padding: 0; }
+
+h2.title {
+  letter-spacing: 4px;
+  text-align: center;
+  color: #555;
+  font-weight: normal;
+  font-size: 1em;
+  font-family: 'helvetica neue'; }
+
+@-webkit-keyframes rotating {
+  from {
+    -webkit-transform: rotate(0deg); }
+
+  to {
+    -webkit-transform: rotate(360deg); } }
+
+p {
+  margin-bottom: 1.5em; }
+
+a.logo {
+  text-decoration: none;
+  border: 4px solid #f07;
+  border-radius: 50px;
+  width: 50px;
+  height: 50px;
+  line-height: 40px;
+  display: inline-block;
+  text-align: center;
+  font-size: 20px;
+  background: white;
+  color: #f07; }
+  a.logo:hover {
+    -webkit-animation: rotating 0.5s linear infinite;
+    cursor: pointer;
+    background: #f07;
+    color: white; }
+
+a.button, input[type='submit'] {
+  border: 2px solid #555;
+  color: #555;
+  border-radius: 20px;
+  text-decoration: none;
+  font: inherit;
+  line-height: 20px;
+  padding: 5px 20px;
+  background: white;
+  cursor: pointer; }
+  a.button:hover, input[type='submit']:hover {
+    color: white;
+    background: #555; }
+
+input[type='submit'] {
+  border-color: #f07;
+  color: #f07; }
+  input[type='submit']:hover {
+    background: #f07; }
+
+.auth-form label {
+  display: block;
+  color: #555; }
+.auth-form input[type='text'], .auth-form input[type='password'] {
+  border-radius: 4px;
+  border: 2px solid #aaa;
+  width: 100%;
+  line-height: 20px;
+  padding: 5px;
+  box-shadow: 1px 1px 3px #eee;
+  font: inherit; }
+.auth-form .or {
+  padding: 0 10px; }
+.auth-form .f {
+  margin: 0 0 20px 0; }

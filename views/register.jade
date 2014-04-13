@@ -1,0 +1,31 @@
+extends layout
+
+block content
+  h2 Register
+
+  - if ('undefined' !== typeof errors && errors.length)
+    ul#errors
+      - each error in errors
+        li.error= error
+  
+  form(action='/register', method='post' class="auth-form")
+    #login.f
+      label(for=everyauth.password.loginFormFieldName) Login
+      input(type='text', name=everyauth.password.loginFormFieldName, value=userParams[everyauth.password.loginFormFieldName])
+      small 
+        b ( 
+        | This is your username that everyone will see in the 
+        | metaverse. Valid characters are 0-9, a-z and the 
+        | underscore. Length may be 3 to 20 characters. Login
+        | cannot start with a number or underscore.
+        b  )
+    #password.f
+      label(for=everyauth.password.passwordFormFieldName) Password
+      input(type='password', name=everyauth.password.passwordFormFieldName)
+    #password-confirmation.f
+      label(for=everyauth.password.passwordFormFieldName + '_confirmation') Password Confirmation
+      input(type='password', name=everyauth.password.passwordFormFieldName + '_confirmation')
+    #submit
+      input(type='submit', value='Register')
+      span.or or
+      a(href="/login", class="button") Login

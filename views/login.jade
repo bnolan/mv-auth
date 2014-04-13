@@ -1,0 +1,23 @@
+extends layout
+
+block content
+  h2 Log in
+
+  - if ('undefined' !== typeof errors && errors.length)
+    ul#errors
+      - each error in errors
+        li.error= error
+
+  form(action='/login', method='post', class='auth-form')
+    #login.f
+      label(for=everyauth.password.loginFormFieldName) Login
+      input(type='text', name=everyauth.password.loginFormFieldName, value=login)
+    #password.f
+      label(for=everyauth.password.passwordFormFieldName) Password
+      input(type='password', name=everyauth.password.passwordFormFieldName)
+    #submit.f
+      input(type='submit', value='Log in')
+      span.or or
+      a(href="/register", class="button") Register
+
+

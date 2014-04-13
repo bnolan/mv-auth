@@ -1,0 +1,18 @@
+doctype html
+html(lang="en")
+  head
+    title= pageTitle
+    meta(name="viewport",content="width=device-width")
+    style.
+      @import url(http://fonts.googleapis.com/css?family=Roboto:400,700);
+      @import url(/stylesheet.css);
+  body
+    #wrapper
+      h1.title
+        a.logo(href='/') M
+      
+      block content
+
+    script.
+      document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1"></' + 'script>')
+
